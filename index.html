@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI UGC Video Generator</title>
+    <!-- Memuat Tailwind CSS untuk styling modern dan responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Mengatur font dan memastikan layout responsif */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .container-card {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /* Custom style untuk rasio 9:16 */
+        .aspect-9-16 {
+            aspect-ratio: 9 / 16;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 p-4 md:p-8">
+
+    <div id="app" class="container-card">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-2">
+                <span class="text-blue-600">AI UGC</span> Video Generator
+            </h1>
+            <p class="text-lg text-gray-500">Buat aset video promosi siap pakai dalam rasio 9:16 untuk media sosial.</p>
+        </header>
+
+        <!-- Area Pesan Error -->
+        <div id="error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-6 hidden" role="alert">
+            <strong class="font-bold">Error: </strong>
+            <span id="error-text" class="block sm:inline"></span>
+        </div>
+
+        <!-- Indikator Langkah -->
+        <div class="flex justify-center mb-8 space-x-4">
+            <div id="step-1-indicator" class="px-4 py-2 rounded-full font-semibold transition-colors bg-blue-600 text-white shadow-md">1. Input Produk</div>
+            <div id="step-2-indicator" class="px-4 py-2 rounded-full font-semibold transition-colors bg-gray-200 text-gray-600">2. Hasil & Refinement</div>
+        </div>
+        
+        <!-- --- LANGKAH 1: INPUT --- -->
+        <div id="step-1-content" class="bg-white p-6 md:p-10 rounded-2xl shadow-2xl">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Detail Produk & Suasana</h2>
+            
+            <div class="space-y-6">
+                <!-- Input Nama Produk -->
+                <div>
+                    <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Nama Produk (Contoh: Serum Wajah Ajaib)</label>
+                    <input type="text" id="productName" placeholder="Masukkan nama produk"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition duration-150" />
+                </div>
+
+                <!-- Pilih Suasana -->
+                <div>
+                    <label for="vibe" class="block text-sm font-medium text-gray-700 mb-1">Pilih Suasana Latar Belakang</label>
+                    <select id="vibe" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition duration-150">
+                        <!-- Opsi akan diisi oleh JS -->
+                    </select>
+                </div>
+
+                <!-- Input Gambar -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Gambar Produk -->
+                    <div class="p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Upload Gambar Produk</label>
+                        <input type="file" id="productImageInput" accept="image/*"
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                        <img id="productImagePreview" alt="Pratinjau Produk" class="mt-4 w-20 h-20 object-cover rounded-lg shadow hidden" />
+                    </div>
+
+                    <!-- Gambar Model -->
+                    <div class="p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Upload Gambar Model</label>
+                        <input type="file" id="modelImageInput" accept="image/*"
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                        <img id="modelImagePreview" alt="Pratinjau Model" class="mt-4 w-20 h-20 object-cover rounded-lg shadow hidden" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tombol Lanjut -->
+            <div class="mt-8">
+                <button id="startButton" onclick="startGeneration()" disabled
+                        class="w-full flex items-center justify-center py-4 rounded-xl font-bold text-lg transition duration-300 bg-gray-300 text-gray-500 cursor-not-allowed">
+                    Generate Semua Aset Video
+                </button>
+            </div>
+        </div>
+
+        <!-- --- LANGKAH 2: HASIL & REFINEMENT --- -->
+        <div id="step-2-content" class="space-y-8 hidden">
+            <!-- Box Naskah & Audio -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Naskah dan Audio Voice Over</h2>
+
+                <!-- Naskah -->
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Naskah Iklan (4 Bagian)</h3>
+                    <div id="scriptOutput" class="bg-gray-50 p-4 rounded-xl border border-gray-200 whitespace-pre-wrap min-h-20 text-gray-700">
+                        Naskah akan muncul di sini.
+                    </div>
+                </div>
+
+                <!-- Audio -->
+                <div class="border-t pt-4 flex flex-col md:flex-row items-center justify-between">
+                    <h3 class="text-xl font-semibold text-gray-700">Audio Voice Over</h3>
+                    <div id="audioControls" class="flex items-center space-x-3 mt-4 md:mt-0">
+                        <p id="audioStatus" class="text-gray-500">Audio belum dibuat.</p>
+                        <audio id="audioPlayer" controls class="h-10 hidden"></audio>
+                        <button id="downloadAudioButton" onclick="downloadAudio()" disabled
+                                class="bg-green-500 text-white py-2 px-4 rounded-xl hover:bg-green-600 transition duration-150 font-semibold hidden">
+                            Unduh Audio (.wav)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Box Adegan Gambar/Video -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Aset Adegan Video (9:16)</h2>
+                <div id="scenesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Kartu Adegan akan di-render di sini oleh JS -->
+                </div>
+            </div>
+            
+            <!-- Tombol Kembali -->
+            <div class="text-center">
+                <button onclick="setStep(1)" class="text-blue-600 hover:text-blue-800 font-medium transition duration-150">
+                    &larr; Kembali ke Input
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Semua Logika JavaScript diletakkan di sini -->
+    <script>
+        // =====================================================================================
+        // !!! PENTING: Untuk menjalankan di localhost, ganti "" dengan KUNCI API Gemini Anda !!!
+        // =====================================================================================
+        const apiKey = ""; // <--- GANTI INI DENGAN KUNCI API ANDA
+        // =====================================================================================
+
+        let state = {
+            step: 1,
+            productName: '',
+            vibe: 'modern dan cerah',
+            productImage: null,
+            modelImage: null,
+            script: '',
+            audioBase64: null, // Base64 mentah PCM dari API
+            scenes: [],
+            loading: {
+                all: false,
+                script: false,
+                audio: false,
+                image: {},
+                video: {}
+            },
+            error: null
+        };
+
+        const initialScenesTemplate = [
+            { id: 1, name: 'Hook (Pengait)', description: 'Model menggunakan produk dengan ekspresi terkejut atau tertarik.', prompt: '', imageBase64: null, videoBase64: null, status: 'pending' },
+            { id: 2, name: 'Problem (Masalah)', description: 'Close-up produk menyoroti masalah atau kekurangan yang biasa terjadi.', prompt: '', imageBase64: null, videoBase64: null, status: 'pending' },
+            { id: 3, name: 'Solution (Solusi)', description: 'Tampilan produk dengan fokus pada fitur atau manfaat utama.', prompt: '', imageBase64: null, videoBase64: null, status: 'pending' },
+            { id: 4, name: 'CTA (Ajakan Bertindak)', description: 'Model melihat ke kamera dan mengajak untuk membeli atau mencoba.', prompt: '', imageBase64: null, videoBase64: null, status: 'pending' },
+        ];
+        
+        const vibes = ['modern dan cerah', 'hangat dan estetis', 'minimalis dan bersih', 'gelap dan misterius', 'luar ruangan/alam'];
+
+        // --- Helper DOM ---
+
+        const getEl = (id) => document.getElementById(id);
+
+        function showLoadingSpinner(el, text = '') {
+            el.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg> ${text}`;
+            el.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed', 'bg-blue-600', 'hover:bg-blue-700');
+            el.classList.add('bg-blue-600', 'text-white');
+            el.disabled = true;
+        }
+        
+        function hideLoadingSpinner(el, defaultText, isEnabled) {
+            el.innerHTML = defaultText;
+            el.disabled = !isEnabled;
+            el.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+            if (isEnabled) {
+                el.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+            } else {
+                el.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+            }
+        }
+
+        function updateUI() {
+            // Update Step Indicators
+            const step1Classes = state.step === 1 ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600';
+            const step2Classes = state.step === 2 ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600';
+            getEl('step-1-indicator').className = `px-4 py-2 rounded-full font-semibold transition-colors ${step1Classes}`;
+            getEl('step-2-indicator').className = `px-4 py-2 rounded-full font-semibold transition-colors ${step2Classes}`;
+
+            // Update Step Content
+            getEl('step-1-content').classList.toggle('hidden', state.step !== 1);
+            getEl('step-2-content').classList.toggle('hidden', state.step !== 2);
+            
+            // Update Start Button (Step 1)
+            const isStep1Valid = state.productName && state.vibe && state.productImage && state.modelImage && apiKey.length > 0;
+            const startButton = getEl('startButton');
+            if (state.loading.all) {
+                showLoadingSpinner(startButton, 'Membuat Aset...');
+            } else if (apiKey.length === 0) {
+                 hideLoadingSpinner(startButton, 'Masukkan Kunci API Dulu!', false);
+            } else {
+                hideLoadingSpinner(startButton, 'Generate Semua Aset Video', isStep1Valid);
+            }
+
+            // Update Error Message
+            const errorBox = getEl('error-message');
+            if (state.error) {
+                getEl('error-text').textContent = state.error;
+                errorBox.classList.remove('hidden');
+            } else {
+                errorBox.classList.add('hidden');
+            }
+
+            // Update Step 2 Content (if visible)
+            if (state.step === 2) {
+                // Update Script Output
+                getEl('scriptOutput').textContent = state.loading.script 
+                    ? 'Membuat naskah...' 
+                    : state.script || 'Naskah belum dibuat.';
+
+                // Update Audio Controls
+                const audioStatusEl = getEl('audioStatus');
+                const audioPlayerEl = getEl('audioPlayer');
+                const downloadAudioButtonEl = getEl('downloadAudioButton');
+                
+                if (state.loading.audio) {
+                    audioStatusEl.innerHTML = `<span class="flex items-center text-blue-600"><svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses Audio...</span>`;
+                    audioStatusEl.classList.remove('hidden');
+                    audioPlayerEl.classList.add('hidden');
+                    downloadAudioButtonEl.classList.add('hidden');
+                } else if (state.audioBase64) {
+                    audioStatusEl.classList.add('hidden');
+                    // Buat ulang URL Blob setiap kali src diatur
+                    const audioBlob = pcmToWav(new Int16Array(base64ToArrayBuffer(state.audioBase64)), 16000);
+                    audioPlayerEl.src = URL.createObjectURL(audioBlob);
+                    audioPlayerEl.classList.remove('hidden');
+                    downloadAudioButtonEl.classList.remove('hidden');
+                    downloadAudioButtonEl.disabled = false;
+                } else {
+                    audioStatusEl.textContent = 'Audio belum dibuat.';
+                    audioStatusEl.classList.remove('hidden');
+                    audioPlayerEl.classList.add('hidden');
+                    downloadAudioButtonEl.classList.add('hidden');
+                }
+
+                // Render Scene Cards
+                renderSceneCards();
+            }
+        }
+        
+        // --- Core Application Functions ---
+
+        function setStep(newStep) {
+            state.step = newStep;
+            if (newStep === 1) {
+                state.error = null;
+            }
+            updateUI();
+        }
+
+        function handleError(message) {
+            console.error(message);
+            state.error = message;
+            state.loading.all = false;
+            // Menutup semua loading yang mungkin aktif
+            state.loading = { all: false, script: false, audio: false, image: {}, video: {} };
+            updateUI();
+        }
+
+        // --- API Utilities (Copied from React logic) ---
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        if (response.status === 429 || response.status >= 500) {
+                            throw new Error(`Server error: ${response.status}`);
+                        }
+                        const errorBody = await response.json();
+                        throw new Error(`API Error: ${response.statusText} - ${JSON.stringify(errorBody)}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (error.message.includes("403")) {
+                         // Jangan retry jika error 403 (Permission Denied)
+                        throw new Error("Kunci API Ilegal/Izin Ditolak. Pastikan kunci API sudah terisi dengan benar.");
+                    }
+                    console.warn(`Percobaan ${i + 1} gagal:`, error.message);
+                    if (i === maxRetries - 1) throw error;
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        async function callGeminiApi(model, payload) {
+            if (apiKey.length === 0) throw new Error("Kunci API belum disetel.");
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const response = await fetchWithRetry(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (result.candidates && result.candidates.length > 0) {
+                if (result.candidates[0].content?.parts?.[0]?.text) {
+                    return result.candidates[0].content.parts[0].text;
+                }
+                const inlineDataPart = result.candidates[0].content?.parts?.find(p => p.inlineData);
+                if (inlineDataPart) {
+                    return inlineDataPart.inlineData;
+                }
+            }
+            throw new Error('Respons API tidak valid atau tidak ada konten yang dihasilkan.');
+        }
+
+        async function callImagenApi(prompt) {
+            if (apiKey.length === 0) throw new Error("Kunci API belum disetel.");
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+            const payload = { 
+                instances: [{ prompt: prompt }], 
+                parameters: { 
+                    "sampleCount": 1,
+                    "aspectRatio": "9:16",
+                    "outputMimeType": "image/png"
+                } 
+            };
+            
+            const response = await fetchWithRetry(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                return result.predictions[0].bytesBase64Encoded;
+            }
+            throw new Error('Gagal menghasilkan gambar dari Imagen API.');
+        }
+
+        // --- Utilitas Konversi Audio (PCM ke WAV) ---
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function writeString(view, offset, str) {
+            for (let i = 0; i < str.length; i++) {
+                view.setUint8(offset + i, str.charCodeAt(i));
+            }
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+            const view = new DataView(buffer);
+
+            // RIFF identifier
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcm16.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // Audio format (1 for PCM)
+            view.setUint16(22, 1, true); // Number of channels
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true); // Byte rate
+            view.setUint16(32, 2, true); // Block align
+            view.setUint16(34, 16, true); // Bits per sample
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcm16.length * 2, true); // data chunk size
+
+            const pcmOffset = 44;
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(pcmOffset + i * 2, pcm16[i], true);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+        
+        // --- Input Handling ---
+
+        function setupEventListeners() {
+            // Input Nama Produk
+            getEl('productName').addEventListener('input', (e) => {
+                state.productName = e.target.value;
+                updateUI();
+            });
+
+            // Input Gambar Produk
+            getEl('productImageInput').addEventListener('change', (e) => handleImageUpload(e, 'productImage', 'productImagePreview'));
+            
+            // Input Gambar Model
+            getEl('modelImageInput').addEventListener('change', (e) => handleImageUpload(e, 'modelImage', 'modelImagePreview'));
+            
+            // Suasana Dropdown
+            const vibeSelect = getEl('vibe');
+            vibeSelect.innerHTML = vibes.map(v => `<option value="${v}">${v.charAt(0).toUpperCase() + v.slice(1)}</option>`).join('');
+            vibeSelect.addEventListener('change', (e) => {
+                state.vibe = e.target.value;
+                updateUI();
+            });
+            state.vibe = vibeSelect.value;
+        }
+
+        function handleImageUpload(e, stateKey, previewId) {
+            const file = e.target.files[0];
+            const previewEl = getEl(previewId);
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    // Simpan data base64 tanpa prefix 'data:image/...'
+                    state[stateKey] = event.target.result.split(',')[1];
+                    previewEl.src = event.target.result;
+                    previewEl.classList.remove('hidden');
+                    updateUI();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                state[stateKey] = null;
+                previewEl.classList.add('hidden');
+                updateUI();
+            }
+        }
+        
+        // --- Logika Generasi ---
+        
+        async function generateScript(product, vibe) {
+            state.loading.script = true;
+            updateUI();
+            
+            const systemPrompt = "Anda adalah penulis naskah iklan UGC yang handal. Buat naskah video berdurasi 30 detik untuk media sosial, dalam Bahasa Indonesia kasual, yang terdiri dari 4 bagian (Hook, Problem, Solution, CTA). Pastikan setiap bagian pendek dan padat. Gunakan struktur JSON berikut.";
+            const userQuery = `Buatkan naskah UGC 4 bagian (Hook, Problem, Solution, CTA) untuk produk: ${product}. Targetkan suasana: ${vibe}.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "hook": { "type": "STRING" },
+                            "problem": { "type": "STRING" },
+                            "solution": { "type": "STRING" },
+                            "cta": { "type": "STRING" }
+                        }
+                    }
+                }
+            };
+
+            try {
+                const jsonString = await callGeminiApi('gemini-2.5-flash-preview-09-2025', payload);
+                const scriptObject = JSON.parse(jsonString);
+                const fullScript = Object.values(scriptObject).join('\n\n---\n\n'); // Gunakan format lebih rapi di output
+
+                state.script = fullScript;
+                
+                // Update prompts for images with script context and reset scenes
+                state.scenes = initialScenesTemplate.map((scene, index) => {
+                    let scenePromptPart = '';
+                    if (index === 0) scenePromptPart = scriptObject.hook;
+                    if (index === 1) scenePromptPart = scriptObject.problem;
+                    if (index === 2) scenePromptPart = scriptObject.solution;
+                    if (index === 3) scenePromptPart = scriptObject.cta;
+
+                    return { ...scene, prompt: scenePromptPart, imageBase64: null, videoBase64: null, status: 'pending' };
+                });
+
+                return scriptObject; // Kembalikan object untuk scene generation
+            } catch (e) {
+                handleError(`Gagal menghasilkan naskah: ${e.message}`);
+                return null;
+            } finally {
+                state.loading.script = false;
+                updateUI();
+            }
+        }
+
+        async function generateImage(sceneId, scenePrompt) {
+            const sceneIndex = state.scenes.findIndex(s => s.id === sceneId);
+            if (sceneIndex === -1) return;
+
+            state.loading.image[sceneId] = true;
+            state.scenes[sceneIndex].status = 'loading-image';
+            state.error = null;
+            updateUI();
+
+            const modelDesc = state.modelImage ? 'dengan model muda, bersemangat, dan ekspresif' : '';
+            const productDesc = state.productName ? `produk ${state.productName}` : 'produk yang menarik';
+
+            const fullPrompt = `Gaya UGC, vertikal (9:16), foto beresolusi tinggi, realistis. Adegan: ${scenePrompt}. Fokus utama adalah ${productDesc} ${modelDesc}. Suasana: ${state.vibe}.`;
+
+            try {
+                const base64Data = await callImagenApi(fullPrompt);
+                state.scenes[sceneIndex] = { 
+                    ...state.scenes[sceneIndex], 
+                    imageBase64: base64Data, 
+                    status: 'ready',
+                    videoBase64: null // Reset video jika gambar di-regenerate
+                };
+            } catch (e) {
+                handleError(`Gagal menghasilkan gambar untuk adegan ${sceneId}: ${e.message}`);
+                state.scenes[sceneIndex].status = 'failed';
+            } finally {
+                state.loading.image[sceneId] = false;
+                updateUI();
+            }
+        }
+
+        async function generateAudio(scriptObject) {
+            state.loading.audio = true;
+            updateUI();
+
+            // Gabungkan naskah menjadi satu string untuk TTS
+            const fullScriptText = Object.values(scriptObject).join('. ');
+            
+            try {
+                const audioInlineData = await callGeminiApi('gemini-2.5-flash-preview-tts', {
+                    contents: [{ parts: [{ text: `Baca naskah ini dengan nada santai dan ramah: ${fullScriptText}` }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: "Puck" }
+                            }
+                        }
+                    },
+                    model: "gemini-2.5-flash-preview-tts"
+                });
+
+                if (audioInlineData && audioInlineData.data) {
+                    state.audioBase64 = audioInlineData.data;
+                } else {
+                    throw new Error('Data audio kosong.');
+                }
+            } catch (e) {
+                handleError(`Gagal menghasilkan audio: ${e.message}`);
+            } finally {
+                state.loading.audio = false;
+                updateUI();
+            }
+        }
+
+        async function generateAllImages() {
+            // Gunakan state.scenes karena sudah diupdate oleh generateScript
+            for (const scene of state.scenes) {
+                await generateImage(scene.id, scene.prompt);
+            }
+        }
+
+        async function startGeneration() {
+            if (apiKey.length === 0) {
+                 handleError("Silakan masukkan Kunci API Anda di dalam kode JavaScript.");
+                 return;
+            }
+
+            state.loading.all = true;
+            state.error = null;
+            updateUI();
+
+            // 1. Generate Script (and update scene prompts)
+            const scriptObject = await generateScript(state.productName, state.vibe);
+
+            if (scriptObject) {
+                // 2. Generate Audio
+                await generateAudio(scriptObject);
+
+                // 3. Generate Images (using the updated prompts in state.scenes)
+                await generateAllImages();
+
+                setStep(2);
+            }
+
+            state.loading.all = false;
+            updateUI();
+        }
+        
+        async function generateSceneVideo(sceneId) {
+            const sceneIndex = state.scenes.findIndex(s => s.id === sceneId);
+            const scene = state.scenes[sceneIndex];
+            if (!scene || !scene.imageBase64 || scene.videoBase64 || state.loading.all) return;
+
+            state.loading.video[sceneId] = true;
+            state.scenes[sceneIndex].status = 'loading-video';
+            state.error = null;
+            updateUI();
+
+            const videoPrompt = `Ubah gambar ini menjadi klip video vertikal (9:16) berdurasi 3 detik dengan gerakan kamera yang dinamis dan transisi cepat, bergaya iklan UGC media sosial.`;
+
+            try {
+                // SIMULASI: Video API tidak tersedia. Mensimulasikan waktu pemrosesan dan menandainya sebagai siap.
+                await new Promise(resolve => setTimeout(resolve, 3000)); 
+                
+                const simulatedVideoBase64 = 'SIMULATED_VIDEO_DATA'; 
+                
+                state.scenes[sceneIndex].videoBase64 = simulatedVideoBase64;
+                state.scenes[sceneIndex].status = 'video-ready';
+                
+                alert('Simulasi Video Siap: Klip video telah selesai diproses dan siap diunduh (simulasi).');
+                
+            } catch (e) {
+                handleError(`Gagal menghasilkan video untuk adegan ${sceneId}: ${e.message}`);
+            } finally {
+                state.loading.video[sceneId] = false;
+                updateUI();
+            }
+        }
+        
+        // --- Utilitas Unduh ---
+        function downloadFile(data, filename, mimeType) {
+            if (!data) return;
+            
+            let blob;
+            if (mimeType.startsWith('audio/')) {
+                const pcmData = base64ToArrayBuffer(data);
+                const pcm16 = new Int16Array(pcmData);
+                blob = pcmToWav(pcm16, 16000);
+            } else if (mimeType.startsWith('image/')) {
+                const byteCharacters = atob(data);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                blob = new Blob([byteArray], { type: mimeType });
+            } else {
+                 // Untuk base64 video (simulasi)
+                 blob = new Blob([data], { type: mimeType });
+            }
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadAudio() {
+            if (state.audioBase64) {
+                downloadFile(state.audioBase64, 'voice_over.wav', 'audio/L16;rate=16000');
+            }
+        }
+        
+        function downloadImage(sceneId) {
+            const scene = state.scenes.find(s => s.id === sceneId);
+            if (scene && scene.imageBase64) {
+                downloadFile(scene.imageBase64, `${scene.name.toLowerCase().replace(/\s/g, '_')}_image.png`, 'image/png');
+            }
+        }
+
+        function downloadVideo(sceneId) {
+             const scene = state.scenes.find(s => s.id === sceneId);
+             if (scene && scene.videoBase64) {
+                 alert('Simulasi Unduh: Video telah diunduh (file placeholder). Dalam aplikasi nyata, ini akan menjadi file video.');
+             }
+        }
+
+        // --- Rendering Adegan ---
+        function renderSceneCards() {
+            const container = getEl('scenesContainer');
+            container.innerHTML = state.scenes.map(scene => {
+                const imageSrc = scene.imageBase64 ? `data:image/png;base64,${scene.imageBase64}` : null;
+                const isLoadingImage = state.loading.image[scene.id];
+                const isLoadingVideo = state.loading.video[scene.id];
+                const isImageReady = scene.status === 'ready' || scene.status === 'video-ready';
+                const isVideoReady = scene.status === 'video-ready';
+                const isAnyLoading = state.loading.all || isLoadingImage || isLoadingVideo;
+
+                const regenerateButtonText = isLoadingImage ? 
+                    `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memuat...` : 
+                    'Regenerate Gambar';
+                
+                const generateVideoButtonClasses = isImageReady && !isVideoReady && !isAnyLoading ? 
+                    'bg-blue-600 text-white hover:bg-blue-700' : 
+                    isVideoReady ? 'bg-teal-500 text-white cursor-not-allowed' : 
+                    'bg-gray-300 text-gray-500 cursor-not-allowed';
+
+                const generateVideoButtonText = isLoadingVideo ? 
+                    `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...` : 
+                    isVideoReady ? 'Video Siap!' : 'Generate Klip Video';
+
+                // Escape prompt string for use in onclick
+                const escapedPrompt = scene.prompt.replace(/'/g, "\\'");
+
+                return `
+                    <div class="bg-white p-4 border border-gray-200 rounded-xl shadow-lg flex flex-col h-full">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">${scene.name}</h3>
+                        <p class="text-sm text-gray-500 mb-4 h-10 overflow-hidden">${scene.description}</p>
+                        
+                        <div class="relative w-full aspect-9-16 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center mb-4 flex-grow">
+                            ${isLoadingImage ? `
+                                <div class="flex flex-col items-center">
+                                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <span class="text-sm text-gray-500 mt-2">Membuat Gambar...</span>
+                                </div>
+                            ` : imageSrc ? `
+                                <img src="${imageSrc}" alt="${scene.name}" class="w-full h-full object-cover" />
+                                ${isVideoReady ? `
+                                    <div class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-300" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-xs text-white mt-1">Video Siap</span>
+                                    </div>
+                                ` : ''}
+                            ` : `
+                                <span class="text-gray-400 text-center text-sm p-4">Pratinjau Gambar 9:16</span>
+                            `}
+                        </div>
+
+                        <div class="flex flex-col space-y-2 mt-auto">
+                            <div class="flex space-x-2">
+                                <button
+                                    onclick="generateImage(${scene.id}, '${escapedPrompt}')"
+                                    disabled="${!isImageReady || isAnyLoading}"
+                                    class="flex-1 flex items-center justify-center text-sm py-2 px-3 rounded-xl transition duration-150 ${isImageReady && !isAnyLoading ? 'bg-orange-100 text-orange-600 hover:bg-orange-200' : 'bg-gray-200 text-gray-500 cursor-not-allowed'} font-semibold"
+                                >
+                                    ${regenerateButtonText}
+                                </button>
+                                <button
+                                    onclick="downloadImage(${scene.id})"
+                                    disabled="${!isImageReady || isAnyLoading}"
+                                    class="text-sm py-2 px-3 rounded-xl transition duration-150 ${isImageReady && !isAnyLoading ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'} font-semibold"
+                                >
+                                    Unduh Gambar
+                                </button>
+                            </div>
+
+                            <button
+                                onclick="generateSceneVideo(${scene.id})"
+                                disabled="${!isImageReady || isAnyLoading || isVideoReady}"
+                                class="w-full flex items-center justify-center py-2 px-3 rounded-xl transition duration-150 font-semibold ${generateVideoButtonClasses}"
+                            >
+                                ${generateVideoButtonText}
+                            </button>
+                            
+                            <button
+                                onclick="downloadVideo(${scene.id})"
+                                disabled="${!isVideoReady || isAnyLoading}"
+                                class="w-full flex items-center justify-center py-2 px-3 rounded-xl transition duration-150 font-semibold ${isVideoReady ? 'bg-teal-700 text-white hover:bg-teal-800' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}"
+                            >
+                                Unduh Klip Video (Simulasi)
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // --- Inisialisasi Aplikasi ---
+        window.onload = function() {
+            setupEventListeners();
+            state.scenes = [...initialScenesTemplate];
+            updateUI();
+        };
+
+    </script>
+
+</body>
+</html>
+
+
