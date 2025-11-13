@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AI UGC Video Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .container-card { max-width: 1200px; margin-left:auto; margin-right:auto; }
-        .aspect-9-16 { aspect-ratio: 9 / 16; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI UGC Video Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .container-card { max-width: 1200px; margin: auto; }
+    .aspect-9-16 { aspect-ratio: 9 / 16; }
+  </style>
 </head>
 <body class="min-h-screen bg-gray-50 p-4 md:p-8">
 
@@ -18,100 +18,92 @@
       <h1 class="text-4xl font-extrabold text-gray-900 mb-2">
         <span class="text-blue-600">AI UGC</span> Video Generator
       </h1>
-      <p class="text-lg text-gray-500">Buat aset video promosi siap pakai dalam rasio 9:16 untuk media sosial.</p>
+      <p class="text-lg text-gray-500">Buat aset video promosi 9:16 siap pakai untuk media sosial.</p>
     </header>
 
-    <div id="error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-6 hidden" role="alert">
-      <strong class="font-bold">Error: </strong>
-      <span id="error-text" class="block sm:inline"></span>
+    <!-- Area Error -->
+    <div id="error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6 hidden">
+      <strong class="font-bold">Error:</strong>
+      <span id="error-text"></span>
     </div>
 
+    <!-- Indikator Langkah -->
     <div class="flex justify-center mb-8 space-x-4">
-      <div id="step-1-indicator" class="px-4 py-2 rounded-full font-semibold transition-colors bg-blue-600 text-white shadow-md">1. Input Produk</div>
-      <div id="step-2-indicator" class="px-4 py-2 rounded-full font-semibold transition-colors bg-gray-200 text-gray-600">2. Hasil & Refinement</div>
+      <div id="step-1-indicator" class="px-4 py-2 rounded-full font-semibold bg-blue-600 text-white shadow-md">1. Input Produk</div>
+      <div id="step-2-indicator" class="px-4 py-2 rounded-full font-semibold bg-gray-200 text-gray-600">2. Hasil & Refinement</div>
     </div>
 
-    <!-- Step 1 -->
+    <!-- Langkah 1 -->
     <div id="step-1-content" class="bg-white p-6 md:p-10 rounded-2xl shadow-2xl">
       <h2 class="text-2xl font-bold text-gray-800 mb-6">Detail Produk & Suasana</h2>
-
       <div class="space-y-6">
         <div>
-          <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Nama Produk (Contoh: Serum Wajah Ajaib)</label>
-          <input type="text" id="productName" placeholder="Masukkan nama produk"
-                 class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition duration-150" />
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nama Produk</label>
+          <input id="productName" type="text" placeholder="Masukkan nama produk"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500" />
         </div>
-
         <div>
-          <label for="vibe" class="block text-sm font-medium text-gray-700 mb-1">Pilih Suasana Latar Belakang</label>
-          <select id="vibe" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition duration-150"></select>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Suasana</label>
+          <select id="vibe" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500">
+            <option>modern dan cerah</option>
+            <option>hangat dan estetis</option>
+            <option>minimalis dan bersih</option>
+            <option>gelap dan misterius</option>
+            <option>luar ruangan/alam</option>
+          </select>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50">
             <label class="block text-sm font-medium text-gray-700 mb-3">Upload Gambar Produk</label>
             <input type="file" id="productImageInput" accept="image/*"
-                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-            <img id="productImagePreview" alt="Pratinjau Produk" class="mt-4 w-20 h-20 object-cover rounded-lg shadow hidden" />
+                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:bg-blue-50 file:text-blue-700" />
+            <img id="productImagePreview" class="mt-4 w-20 h-20 object-cover rounded-lg hidden" />
           </div>
-
           <div class="p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50">
             <label class="block text-sm font-medium text-gray-700 mb-3">Upload Gambar Model</label>
             <input type="file" id="modelImageInput" accept="image/*"
-                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-            <img id="modelImagePreview" alt="Pratinjau Model" class="mt-4 w-20 h-20 object-cover rounded-lg shadow hidden" />
+                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:bg-blue-50 file:text-blue-700" />
+            <img id="modelImagePreview" class="mt-4 w-20 h-20 object-cover rounded-lg hidden" />
           </div>
         </div>
       </div>
 
       <div class="mt-8">
-        <button id="startButton" onclick="startGeneration()"
-                class="w-full flex items-center justify-center py-4 rounded-xl font-bold text-lg transition duration-300 bg-gray-300 text-gray-500 cursor-not-allowed" disabled>
+        <button id="startButton" onclick="startGeneration()" disabled
+                class="w-full py-4 rounded-xl font-bold text-lg bg-gray-300 text-gray-500 cursor-not-allowed">
           Generate Semua Aset Video
         </button>
       </div>
     </div>
 
-    <!-- Step 2 -->
+    <!-- Langkah 2 -->
     <div id="step-2-content" class="space-y-8 hidden">
       <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Naskah dan Audio Voice Over</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Naskah dan Audio</h2>
         <div class="mb-6">
-          <h3 class="text-xl font-semibold text-gray-700 mb-2">Naskah Iklan (4 Bagian)</h3>
-          <div id="scriptOutput" class="bg-gray-50 p-4 rounded-xl border border-gray-200 whitespace-pre-wrap min-h-20 text-gray-700">
-            Naskah akan muncul di sini.
-          </div>
+          <h3 class="text-xl font-semibold text-gray-700 mb-2">Naskah Iklan</h3>
+          <div id="scriptOutput" class="bg-gray-50 p-4 rounded-xl border border-gray-200 text-gray-700">Naskah akan muncul di sini.</div>
         </div>
-
-        <div class="border-t pt-4 flex flex-col md:flex-row items-center justify-between">
+        <div class="border-t pt-4 flex flex-col md:flex-row justify-between items-center">
           <h3 class="text-xl font-semibold text-gray-700">Audio Voice Over</h3>
-          <div id="audioControls" class="flex items-center space-x-3 mt-4 md:mt-0">
-            <p id="audioStatus" class="text-gray-500">Audio belum dibuat.</p>
+          <div class="flex items-center space-x-3 mt-4 md:mt-0">
+            <p id="audioStatus" class="text-gray-500">Belum dibuat</p>
             <audio id="audioPlayer" controls class="h-10 hidden"></audio>
-            <button id="downloadAudioButton" onclick="downloadAudio()" disabled
-                    class="bg-green-500 text-white py-2 px-4 rounded-xl hover:bg-green-600 transition duration-150 font-semibold hidden">
-              Unduh Audio (.wav)
-            </button>
           </div>
         </div>
       </div>
-
       <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Aset Adegan Video (9:16)</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Aset Adegan</h2>
         <div id="scenesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
       </div>
-
       <div class="text-center">
-        <button onclick="setStep(1)" class="text-blue-600 hover:text-blue-800 font-medium transition duration-150">
-          &larr; Kembali ke Input
-        </button>
+        <button onclick="setStep(1)" class="text-blue-600 hover:text-blue-800 font-medium">&larr; Kembali ke Input</button>
       </div>
     </div>
   </div>
 
   <script>
-    // ---------- STATE ----------
-    let state = {
+    const state = {
       step: 1,
       productName: '',
       vibe: 'modern dan cerah',
@@ -119,462 +111,164 @@
       modelImage: null,
       script: '',
       audioBase64: null,
-      scenes: [],
-      loading: { all: false, script: false, audio: false, image: {}, video: {} },
+      scenes: [
+        { id: 1, name: 'Hook', description: 'Menarik perhatian di awal.', status: 'pending' },
+        { id: 2, name: 'Problem', description: 'Menunjukkan masalah pelanggan.', status: 'pending' },
+        { id: 3, name: 'Solution', description: 'Menunjukkan solusi produk.', status: 'pending' },
+        { id: 4, name: 'CTA', description: 'Ajakan untuk membeli.', status: 'pending' },
+      ],
+      loading: { all: false, script: false, audio: false, image: {} },
       error: null
     };
 
-    const initialScenesTemplate = [
-      { id: 1, name: 'Hook (Pengait)', description: 'Model menggunakan produk dengan ekspresi terkejut atau tertarik.', prompt: '', imageBase64: null, videoBase64: null, status: 'pending' },
-      { id: 2, name: 'Problem (Masalah)', description: 'Close-up produk menyoroti masalah atau kekurangan yang biasa terjadi.', prompt: '', imageBase64: null, videoBase64: null, status: 'pending' },
-      { id: 3, name: 'Solution (Solusi)', description: 'Tampilan produk dengan fokus pada fitur atau manfaat utama.', prompt: '', imageBase64: null, videoBase64: null, status: 'pending' },
-      { id: 4, name: 'CTA (Ajakan Bertindak)', description: 'Model melihat ke kamera dan mengajak untuk membeli atau mencoba.', prompt: '', imageBase64: null, videoBase64: null, status: 'pending' },
-    ];
-
-    const vibes = ['modern dan cerah', 'hangat dan estetis', 'minimalis dan bersih', 'gelap dan misterius', 'luar ruangan/alam'];
-
     const getEl = (id) => document.getElementById(id);
 
-    // ---------- UI HELPERS ----------
-    function showLoadingSpinner(el, text = '') {
-      el.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg> ${text}`;
-      el.classList.remove('bg-gray-300','text-gray-500','cursor-not-allowed','bg-blue-600','hover:bg-blue-700');
-      el.classList.add('bg-blue-600','text-white');
-      el.disabled = true;
-    }
-
-    function hideLoadingSpinner(el, defaultText, isEnabled) {
-      el.innerHTML = defaultText;
-      el.disabled = !isEnabled;
-      el.classList.remove('bg-blue-600','text-white','hover:bg-blue-700','bg-gray-300','text-gray-500','cursor-not-allowed');
-      if (isEnabled) {
-        el.classList.add('bg-blue-600','text-white','hover:bg-blue-700');
-      } else {
-        el.classList.add('bg-gray-300','text-gray-500','cursor-not-allowed');
-      }
+    function setStep(step) {
+      state.step = step;
+      updateUI();
     }
 
     function updateUI() {
-      // Step indicators
-      const step1Classes = state.step === 1 ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600';
-      const step2Classes = state.step === 2 ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600';
-      getEl('step-1-indicator').className = `px-4 py-2 rounded-full font-semibold transition-colors ${step1Classes}`;
-      getEl('step-2-indicator').className = `px-4 py-2 rounded-full font-semibold transition-colors ${step2Classes}`;
-
       getEl('step-1-content').classList.toggle('hidden', state.step !== 1);
       getEl('step-2-content').classList.toggle('hidden', state.step !== 2);
-
-      // Start button enable logic: hanya check input lengkap (tanpa apiKey di client)
-      const startButton = getEl('startButton');
-      const isStep1Valid = state.productName && state.vibe && state.productImage && state.modelImage;
-      if (state.loading.all) {
-        showLoadingSpinner(startButton, 'Membuat Aset...');
-      } else {
-        hideLoadingSpinner(startButton, 'Generate Semua Aset Video', isStep1Valid);
-      }
-
-      // Error box
-      const errorBox = getEl('error-message');
-      if (state.error) {
-        getEl('error-text').textContent = state.error;
-        errorBox.classList.remove('hidden');
-      } else {
-        errorBox.classList.add('hidden');
-      }
-
-      // Step2 content update
-      if (state.step === 2) {
-        getEl('scriptOutput').textContent = state.loading.script ? 'Membuat naskah...' : (state.script || 'Naskah belum dibuat.');
-        const audioStatusEl = getEl('audioStatus');
-        const audioPlayerEl = getEl('audioPlayer');
-        const downloadAudioButtonEl = getEl('downloadAudioButton');
-
-        if (state.loading.audio) {
-          audioStatusEl.innerHTML = `<span class="flex items-center text-blue-600"><svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses Audio...</span>`;
-          audioStatusEl.classList.remove('hidden');
-          audioPlayerEl.classList.add('hidden');
-          downloadAudioButtonEl.classList.add('hidden');
-        } else if (state.audioBase64) {
-          audioStatusEl.classList.add('hidden');
-          const audioBlob = pcmToWav(new Int16Array(base64ToArrayBuffer(state.audioBase64)), 16000);
-          audioPlayerEl.src = URL.createObjectURL(audioBlob);
-          audioPlayerEl.classList.remove('hidden');
-          downloadAudioButtonEl.classList.remove('hidden');
-          downloadAudioButtonEl.disabled = false;
-        } else {
-          audioStatusEl.textContent = 'Audio belum dibuat.';
-          audioStatusEl.classList.remove('hidden');
-          audioPlayerEl.classList.add('hidden');
-          downloadAudioButtonEl.classList.add('hidden');
-        }
-
-        renderSceneCards();
-      }
+      const startBtn = getEl('startButton');
+      startBtn.disabled = !(state.productName && state.productImage && state.modelImage);
+      startBtn.classList.toggle('bg-blue-600', !startBtn.disabled);
+      startBtn.classList.toggle('text-white', !startBtn.disabled);
+      startBtn.classList.toggle('cursor-pointer', !startBtn.disabled);
+      startBtn.classList.toggle('bg-gray-300', startBtn.disabled);
+      startBtn.classList.toggle('text-gray-500', startBtn.disabled);
     }
 
-    function setStep(newStep) {
-      state.step = newStep;
-      if (newStep === 1) state.error = null;
-      updateUI();
-    }
-
-    function handleError(message) {
-      console.error(message);
-      state.error = typeof message === 'string' ? message : (message?.message || 'Unknown error');
-      state.loading = { all: false, script: false, audio: false, image: {}, video: {} };
-      updateUI();
-    }
-
-    // ---------- FILE INPUTS ----------
-    const productImageInput = getEl('productImageInput');
-    const modelImageInput = getEl('modelImageInput');
-
-    productImageInput.addEventListener('change', async (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      state.productImage = file;
-      const url = URL.createObjectURL(file);
-      const img = getEl('productImagePreview');
-      img.src = url;
-      img.classList.remove('hidden');
-      checkFormValidityAndUpdate();
-    });
-
-    modelImageInput.addEventListener('change', async (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      state.modelImage = file;
-      const url = URL.createObjectURL(file);
-      const img = getEl('modelImagePreview');
-      img.src = url;
-      img.classList.remove('hidden');
-      checkFormValidityAndUpdate();
-    });
-
-    // Populate vibe options
-    const vibeSelect = getEl('vibe');
-    vibes.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v;
-      opt.textContent = v;
-      vibeSelect.appendChild(opt);
-    });
-    vibeSelect.value = state.vibe;
-
-    getEl('productName').addEventListener('input', (e) => {
-      state.productName = e.target.value.trim();
-      checkFormValidityAndUpdate();
-    });
-    vibeSelect.addEventListener('change', (e) => {
-      state.vibe = e.target.value;
-      checkFormValidityAndUpdate();
-    });
-
-    function checkFormValidityAndUpdate() {
-      updateUI();
-    }
-
-    // ---------- FETCH WITH RETRY (for proxy endpoints) ----------
-    async function fetchWithRetry(url, options = {}, maxRetries = 4) {
-      for (let i = 0; i < maxRetries; i++) {
-        try {
-          const res = await fetch(url, options);
-          if (!res.ok) {
-            // handle common server errors by retrying
-            if (res.status === 429 || res.status >= 500) {
-              throw new Error(`Server error ${res.status}`);
-            }
-            // other errors: try to parse body
-            const text = await res.text();
-            throw new Error(`Request failed ${res.status}: ${text}`);
-          }
-          return res;
-        } catch (err) {
-          if (i === maxRetries - 1) throw err;
-          const delay = Math.pow(2, i) * 500 + Math.random() * 500;
-          console.warn(`Attempt ${i+1} failed for ${url}: ${err.message}. Retrying in ${Math.round(delay)}ms`);
-          await new Promise(r => setTimeout(r, delay));
-        }
-      }
-    }
-
-    // ---------- API PROXY CALLS ----------
-    // These call your serverless proxy endpoints on Vercel (you must create them)
     async function callGeminiProxy(model, contents) {
-      const res = await fetchWithRetry('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch('/api/gemini', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ model, contents })
       });
-      const json = await res.json();
-      // assume proxy returns { text: '...' } or raw Gemini response
-      // try to extract the generated text similarly to previous logic
-      if (json?.text) return json.text;
-      if (json?.candidates?.[0]?.content?.parts?.[0]?.text) {
-        return json.candidates[0].content.parts[0].text;
-      }
-      // fallback: stringified body
-      return JSON.stringify(json);
+      if (!res.ok) throw new Error('Gagal generate script');
+      const data = await res.json();
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     }
 
     async function callImagenProxy(prompt) {
-      const res = await fetchWithRetry('/api/imagen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, aspectRatio: '9:16', sampleCount: 1 })
+      const res = await fetch('/api/imagen', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ prompt })
       });
-      const json = await res.json();
-      // expect proxy to return { bytesBase64Encoded: '...' } or similar
-      if (json?.predictions?.[0]?.bytesBase64Encoded) return json.predictions[0].bytesBase64Encoded;
-      if (json?.bytesBase64Encoded) return json.bytesBase64Encoded;
-      if (json?.imageBase64) return json.imageBase64;
-      throw new Error('Proxy imagen tidak mengembalikan base64 image');
+      if (!res.ok) throw new Error('Gagal generate gambar');
+      const data = await res.json();
+      return data.bytesBase64Encoded;
     }
 
     async function callTtsProxy(text) {
-      const res = await fetchWithRetry('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch('/api/tts', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ text })
       });
-      const json = await res.json();
-      // expect { audioBase64: '...' } (PCM16LE base64) or similar
-      if (json?.audioBase64) return json.audioBase64;
-      if (json?.audio?.content) return json.audio.content;
-      throw new Error('Proxy TTS tidak mengembalikan audioBase64');
+      if (!res.ok) throw new Error('Gagal generate audio');
+      const data = await res.json();
+      return data.audioBase64;
     }
 
-    // ---------- UTILS: base64 <-> buffer & PCM->WAV ----------
-    function base64ToArrayBuffer(base64) {
-      const binaryString = atob(base64);
-      const len = binaryString.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      return bytes.buffer;
-    }
-
-    function writeString(view, offset, str) {
-      for (let i = 0; i < str.length; i++) {
-        view.setUint8(offset + i, str.charCodeAt(i));
-      }
-    }
-
-    function pcmToWav(pcm16, sampleRate) {
-      // pcm16 is Int16Array
-      const numChannels = 1;
-      const bytesPerSample = 2;
-      const blockAlign = numChannels * bytesPerSample;
-      const byteRate = sampleRate * blockAlign;
-      const dataSize = pcm16.length * bytesPerSample;
-      const buffer = new ArrayBuffer(44 + dataSize);
-      const view = new DataView(buffer);
-
-      /* RIFF identifier */
-      writeString(view, 0, 'RIFF');
-      view.setUint32(4, 36 + dataSize, true);
-      writeString(view, 8, 'WAVE');
-      writeString(view, 12, 'fmt ');
-      view.setUint32(16, 16, true); // chunk size
-      view.setUint16(20, 1, true);  // PCM = 1
-      view.setUint16(22, numChannels, true);
-      view.setUint32(24, sampleRate, true);
-      view.setUint32(28, byteRate, true);
-      view.setUint16(32, blockAlign, true);
-      view.setUint16(34, bytesPerSample * 8, true);
-      writeString(view, 36, 'data');
-      view.setUint32(40, dataSize, true);
-
-      // write PCM samples
-      let offset = 44;
-      for (let i = 0; i < pcm16.length; i++, offset += 2) {
-        view.setInt16(offset, pcm16[i], true);
-      }
-
-      return new Blob([view], { type: 'audio/wav' });
-    }
-
-    // ---------- SCENE RENDER ----------
-    function renderSceneCards() {
-      const container = getEl('scenesContainer');
-      container.innerHTML = '';
-      if (!state.scenes || state.scenes.length === 0) {
-        state.scenes = JSON.parse(JSON.stringify(initialScenesTemplate));
-      }
-      state.scenes.forEach(scene => {
-        const card = document.createElement('div');
-        card.className = 'p-4 rounded-xl border border-gray-200 bg-gray-50';
-        card.innerHTML = `
-          <h4 class="font-semibold text-gray-800 mb-2">${scene.id}. ${scene.name}</h4>
-          <p class="text-sm text-gray-600 mb-3">${scene.description}</p>
-          <div class="aspect-9-16 bg-white rounded-lg overflow-hidden flex items-center justify-center mb-3">
-            ${scene.imageBase64 ? `<img src="data:image/png;base64,${scene.imageBase64}" class="w-full h-full object-cover">` : `<span class="text-gray-400">Belum ada gambar</span>`}
-          </div>
-          <div class="flex items-center justify-between">
-            <div class="text-sm text-gray-500">${scene.status}</div>
-            <div>
-              <button data-scene="${scene.id}" class="generate-image-btn text-sm bg-blue-600 text-white py-1 px-3 rounded-xl hover:bg-blue-700">Generate Gambar</button>
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-
-      // attach handlers
-      document.querySelectorAll('.generate-image-btn').forEach(btn => {
-        btn.onclick = async (e) => {
-          const id = parseInt(e.currentTarget.getAttribute('data-scene'));
-          await generateImageForScene(id);
-        };
-      });
-    }
-
-    // ---------- GENERATION WORKFLOW ----------
-    async function startGeneration() {
-      try {
-        state.error = null;
-        state.loading.all = true;
-        updateUI();
-
-        // reset state
-        state.scenes = JSON.parse(JSON.stringify(initialScenesTemplate));
-        state.script = '';
-        state.audioBase64 = null;
-
-        // 1) generate script (naskah) via Gemini proxy
-        state.loading.script = true;
-        updateUI();
-        const promptScript = buildScriptPrompt();
-        const scriptText = await callGeminiProxy('gemini-2.0-flash-exp', [{ role: 'user', parts: [{ text: promptScript }] }]);
-        // Try to intelligently split into 4 parts if possible
-        state.script = splitScriptIntoParts(scriptText);
-        state.loading.script = false;
-        updateUI();
-
-        // 2) generate images for each scene (parallel or sequential)
-        state.loading.image = {};
-        for (const scene of state.scenes) {
-          state.loading.image[scene.id] = true;
-          state.scenes = state.scenes.map(s => s.id === scene.id ? ({ ...s, status: 'generating' }) : s);
-          updateUI();
-
-          const prompt = buildScenePrompt(scene, state.productName, state.vibe);
-          try {
-            const imageBase64 = await callImagenProxy(prompt);
-            // set on scene
-            state.scenes = state.scenes.map(s => s.id === scene.id ? ({ ...s, imageBase64, status: 'done' }) : s);
-          } catch (err) {
-            state.scenes = state.scenes.map(s => s.id === scene.id ? ({ ...s, status: 'error' }) : s);
-            console.warn('Gagal generate image untuk scene', scene.id, err.message);
-          } finally {
-            state.loading.image[scene.id] = false;
-            updateUI();
-          }
-        }
-
-        // 3) generate audio via TTS proxy (optional)
-        state.loading.audio = true;
-        updateUI();
-        try {
-          // combine script into single voiceover text or use first part — here kita gabung semua
-          const voiceText = Array.isArray(state.script) ? state.script.join(' ') : state.script;
-          const audioBase64 = await callTtsProxy(voiceText);
-          state.audioBase64 = audioBase64;
-        } catch (err) {
-          console.warn('Gagal generate audio:', err.message);
-          // tidak fatal, hanya beri peringatan
-        } finally {
-          state.loading.audio = false;
-          state.loading.all = false;
-          setStep(2);
-          updateUI();
-        }
-
-      } catch (err) {
-        handleError(err.message || err);
-      }
-    }
-
-    // Helper build prompt for script
     function buildScriptPrompt() {
-      // Buat prompt ringkas tapi efektif untuk UGC 4 bagian
-      return `Buat naskah iklan UGC untuk produk bernama "${state.productName}" dengan suasana "${state.vibe}". 
-      Hasilkan 4 bagian singkat (hook, problem, solution, CTA). 
-      Untuk tiap bagian cukup 1-2 kalimat. Jangan sertakan label heading, cukup dipisah dengan baris kosong.`;
+      return `Buat naskah iklan 4 bagian (Hook, Problem, Solution, CTA) untuk produk ${state.productName} dengan nuansa ${state.vibe}.`;
     }
 
     function splitScriptIntoParts(text) {
-      // Coba split by double newline, atau split by sentences ke 4 bagian
-      const parts = text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-      if (parts.length >= 4) return parts.slice(0,4);
-      // fallback: split by sentences
-      const sentences = text.match(/[^\.!\?]+[\.!\?]+/g) || [text];
-      const out = [];
-      for (let i = 0; i < 4; i++) out.push(sentences.slice(i*(Math.ceil(sentences.length/4)), (i+1)*(Math.ceil(sentences.length/4))).join(' ').trim() || '');
-      return out;
+      return text.split(/\n+/).filter(t => t.trim());
     }
 
     function buildScenePrompt(scene, productName, vibe) {
-      // Prompt menghasilkan gambar 9:16, sertakan model & produk
-      return `${scene.description} Product: ${productName}. Vibe: ${vibe}. Rasio: 9:16. Foto berkualitas tinggi, pencahayaan sesuai vibe, warna konsisten, fokus pada produk dan model.`;
+      return `Adegan ${scene.name} untuk iklan ${productName}, gaya ${vibe}, tampilan vertikal 9:16.`;
     }
 
-    // Generate single scene image (button)
-    async function generateImageForScene(id) {
-      const scene = state.scenes.find(s => s.id === id);
-      if (!scene) return;
-      state.loading.image[id] = true;
-      state.scenes = state.scenes.map(s => s.id === id ? ({ ...s, status: 'generating' }) : s);
-      updateUI();
-      try {
-        const prompt = buildScenePrompt(scene, state.productName, state.vibe);
-        const imageBase64 = await callImagenProxy(prompt);
-        state.scenes = state.scenes.map(s => s.id === id ? ({ ...s, imageBase64, status: 'done' }) : s);
-      } catch (err) {
-        console.error('Error generate image for scene', id, err);
-        state.scenes = state.scenes.map(s => s.id === id ? ({ ...s, status: 'error' }) : s);
-        handleError('Gagal generate gambar: ' + (err.message || err));
-      } finally {
-        state.loading.image[id] = false;
-        updateUI();
+    function renderSceneCards() {
+      const container = getEl('scenesContainer');
+      container.innerHTML = '';
+      for (const s of state.scenes) {
+        const card = document.createElement('div');
+        card.className = 'border rounded-xl p-4 text-center bg-gray-50 shadow';
+        card.innerHTML = `
+          <h3 class="font-bold mb-2">${s.name}</h3>
+          <p class="text-sm text-gray-600 mb-3">${s.description}</p>
+          ${s.imageBase64 ? `<img src="data:image/png;base64,${s.imageBase64}" class="rounded-xl shadow">`
+          : `<p class="text-gray-400">${s.status}</p>`}
+        `;
+        container.appendChild(card);
       }
     }
 
-    // ---------- AUDIO DOWNLOAD ----------
-    function downloadAudio() {
-      if (!state.audioBase64) return alert('Audio belum tersedia.');
-      const wavBlob = pcmToWav(new Int16Array(base64ToArrayBuffer(state.audioBase64)), 16000);
-      const url = URL.createObjectURL(wavBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${sanitizeFilename(state.productName || 'voiceover')}.wav`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+    async function startGeneration() {
+      try {
+        state.loading.all = true;
+        state.error = null;
+        updateUI();
+
+        // 1. Script
+        state.loading.script = true;
+        updateUI();
+        const scriptText = await callGeminiProxy('gemini-2.0-flash-exp', [{ role: 'user', parts: [{ text: buildScriptPrompt() }] }]);
+        state.script = splitScriptIntoParts(scriptText).join('\n');
+        state.loading.script = false;
+        updateUI();
+
+        // 2. Gambar tiap adegan (sequential + delay aman)
+        for (const scene of state.scenes) {
+          await new Promise(r => setTimeout(r, 1500)); // delay aman
+          const prompt = buildScenePrompt(scene, state.productName, state.vibe);
+          const imageBase64 = await callImagenProxy(prompt);
+          scene.imageBase64 = imageBase64;
+          scene.status = 'done';
+          renderSceneCards();
+        }
+
+        // 3. Audio
+        state.loading.audio = true;
+        updateUI();
+        const audioBase64 = await callTtsProxy(state.script);
+        state.audioBase64 = audioBase64;
+        const audioBlob = new Blob([Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0))], { type: 'audio/wav' });
+        getEl('audioPlayer').src = URL.createObjectURL(audioBlob);
+        getEl('audioPlayer').classList.remove('hidden');
+        getEl('audioStatus').classList.add('hidden');
+        state.loading.audio = false;
+
+        setStep(2);
+        updateUI();
+      } catch (err) {
+        state.error = err.message;
+        getEl('error-message').classList.remove('hidden');
+        getEl('error-text').textContent = err.message;
+        updateUI();
+      } finally {
+        state.loading.all = false;
+      }
     }
 
-    function sanitizeFilename(name) {
-      return name.replace(/[^\w\d-_\. ]/g, '_').slice(0, 100);
-    }
-
-    // ---------- INIT ----------
-    function init() {
-      // initial UI state
-      state.scenes = JSON.parse(JSON.stringify(initialScenesTemplate));
+    document.getElementById('productName').addEventListener('input', e => {
+      state.productName = e.target.value;
       updateUI();
-    }
-
-    // Expose startGeneration globally (button onclick calls it)
-    window.startGeneration = startGeneration;
-    window.setStep = setStep;
-    window.downloadAudio = downloadAudio;
-
-    init();
+    });
+    document.getElementById('productImageInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        state.productImage = file;
+        const img = getEl('productImagePreview');
+        img.src = URL.createObjectURL(file);
+        img.classList.remove('hidden');
+      }
+      updateUI();
+    });
+    document.getElementById('modelImageInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        state.modelImage = file;
+        const img = getEl('modelImagePreview');
+        img.src = URL.createObjectURL(file);
+        img.classList.remove('hidden');
+      }
+      updateUI();
+    });
   </script>
 </body>
 </html>
