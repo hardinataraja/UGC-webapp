@@ -1,42 +1,46 @@
 // api/gemini.js
-// Serverless Function untuk Vercel — proxy aman untuk Google Generative API
+// Proxy aman untuk Google Gemini dengan auto-retry server-side (429 & 5xx handling)
 
 export default async function handler(req, res) {
   try {
-    // Hanya izinkan POST
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method not allowed' });
-    }
+    if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
-    const { model, contents } = req.body;
-
-    if (!model || !contents) {
-      return res.status(400).json({ error: 'Missing model or contents in request body' });
-    }
-
-    // Ambil API Key dari Environment Variable (Vercel Dashboard → Settings → Environment Variables)
     const API_KEY = process.env.GEMINI_API_KEY;
-    if (!API_KEY) {
-      return res.status(500).json({ error: 'Server misconfigured: missing GEMINI_API_KEY' });
-    }
+    if (!API_KEY) return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
 
-    // Panggil API resmi Google Gemini
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents }),
+    const { model, contents } = req.body || {};
+    if (!model || !contents) return res.status(400).json({ error: "Missing model or contents" });
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+    const payload = JSON.stringify({ contents });
+
+    // Fungsi fetch dengan retry server-side
+    const fetchWithRetry = async (attempt = 1) => {
+      const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      });
+
+      if (response.status === 429 || response.status >= 500) {
+        if (attempt <= 4) {
+          const wait = Math.pow(2, attempt) * 1000 + Math.random() * 500;
+          console.warn(`Retrying Gemini API (attempt ${attempt}) in ${wait}ms...`);
+          await delay(wait);
+          return fetchWithRetry(attempt + 1);
+        }
       }
-    );
+      return response;
+    };
 
+    const response = await fetchWithRetry();
     const data = await response.json();
 
-    // Forward hasil ke client
-    return res.status(response.status).json(data);
+    if (!response.ok) return res.status(response.status).json(data);
+    return res.status(200).json(data);
   } catch (err) {
-    console.error('Error on serverless:', err);
-    return res.status(500).json({ error: 'Internal Server Error', details: err.message });
+    console.error("Gemini proxy error:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
-
